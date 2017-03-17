@@ -62,6 +62,20 @@ def count_strings(file):
     lines = sum(1 for line in file)
     return lines
 
+
+def count_chars_in_lines(file):
+    print "Counting chars in lines..."
+    chars = []
+    for i in file:
+        chars.append(len(i))
+    return chars
+
+LINESIZE = 80
+
+def count_loop_nesting(file):
+    print "Counting nesting loops if any..."
+    return 0
+
 def main():
     parser.add_argument('filename', metavar='F', help='Path to file you want to analyze')
     args = parser.parse_args()
@@ -72,6 +86,14 @@ def main():
         ofile.seek(0)
     else:
         print "File is empty"
+        return 0
+    chars = count_chars_in_lines(ofile)
+    count_lines = 0
+    for i in chars:
+        count_lines += 1
+        if (i > LINESIZE):
+             print "Too many chars in line {}: {} chars".format(count_lines, i)
+    ofile.seek(0)
     methods_amount =  count_methods(ofile)
     if (methods_amount == 0):
         print "No methods found"
