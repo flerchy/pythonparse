@@ -38,7 +38,7 @@ def find_methods_lengths(file):
             string_count = 0
             inside = False
     if name not in lengths_of_methods.keys():
-        lengths_of_methods[name] = string_count-3
+        lengths_of_methods[name] = string_count
     return lengths_of_methods
 
 def count_methods(file):
@@ -84,8 +84,6 @@ def count_spaces(string):
 def count_loop_nesting(file):
     print "Counting nesting loops if any"
     level = 0
-    string = 'for'
-    pattern = re.compile(string)
     begin = []
     end = []
     num_spaces = []
@@ -95,8 +93,11 @@ def count_loop_nesting(file):
         x = file.readline()
         if not x: break
         num_str += 1
-        result = re.search(r'    for', x)
-        if (result is not None):
+        result1 = re.search(r'    for', x)
+        if (result1 is not None):
+            begin.append(num_str)
+        result2 = re.search(r'    while', x)
+        if (result2 is not None):
             begin.append(num_str)
         #print num_str
    # print begin
@@ -118,6 +119,7 @@ def count_loop_nesting(file):
                 end.append(j)
                 break
     end.sort()
+    #print end
     nests = 0
     max_nests = 0
     end.append(99999)
@@ -125,18 +127,18 @@ def count_loop_nesting(file):
     i = 0
     j = 0
     while ((begin[i] != 99999) and (end[j] != 99999)):
+            #print begin[i]
+            #print end[j]
             if begin[i] < end[j]:
                 nests += 1
                 if max_nests < nests:
                     max_nests = nests
                 i += 1
-            if begin[i] > end[j]: 
+            if begin[i] >= end[j]: 
                 nests -= 1
                 j += 1
     return max_nests
-
-
-    return 0
+    
 
 def main():
     parser.add_argument('filename', metavar='F', 
