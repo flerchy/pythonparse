@@ -5,10 +5,13 @@ import time
 import argparse
 import re
 
-LINESIZE = 80
+LINESIZE = 120
 
+INF = 99999
 file = None
 parser = argparse.ArgumentParser(description="Code file stats")
+
+
 
 def find_methods_lengths(file):
     print "Countint methods lengths..."
@@ -20,6 +23,8 @@ def find_methods_lengths(file):
     for i in file:
         #print i
         result = re.match(r'def', i)
+        if result is None:
+            result = re.match(r'class', i)
         #print result
         if (inside == True):
             string_count += 1
@@ -29,7 +34,10 @@ def find_methods_lengths(file):
             inside = False
         if ((result is not None) and (inside == False)):
             func_name = re.search('(?<=def )\w+\(.*\)', i)
-            name =  func_name.group(0)
+            if (func_name is not None):
+                name =  func_name.group(0)
+            else:
+                func_name = re.search('(?<=class )\w+\(.*\)', i)
             string_count = 0
             inside = True
         result2 = re.match(r'[a-z]|[A-Z]', i)
@@ -49,6 +57,10 @@ def count_methods(file):
         result = re.match(r'def ', i)
         if (result is not None):
             methods_amount += 1
+        else:
+            result = re.match(r'class ', i)
+            if(result is not None):
+                methods_amount += 1
     return methods_amount
 
 def fopen(filename):
@@ -100,7 +112,7 @@ def count_loop_nesting(file):
         if (result2 is not None):
             begin.append(num_str)
         #print num_str
-   # print begin
+    #print begin
     file.seek(0)
     num_str = -1
     while True:
@@ -119,11 +131,14 @@ def count_loop_nesting(file):
                 end.append(j)
                 break
     end.sort()
+    if not end:
+        for i in begin:
+            end.append(num_str)
     #print end
     nests = 0
     max_nests = 0
-    end.append(99999)
-    begin.append(99999)
+    end.append(INF)
+    begin.append(INF)
     i = 0
     j = 0
     while ((begin[i] != 99999) and (end[j] != 99999)):
@@ -138,48 +153,65 @@ def count_loop_nesting(file):
                 nests -= 1
                 j += 1
     return max_nests
-    
+
 
 def main():
     parser.add_argument('filename', metavar='F', 
                                     help='Path to file you want to analyze')
+    parser.add_argument('destination', metavar='dest',
+                                    help='Path to results')
     args = parser.parse_args()
     ofile = fopen(args.filename)
-    print "Counting lines..."
+    print args.filename
+    res = open(args.destination, 'a+')
+    #print "Counting lines..."
     strings_amount = count_strings(ofile)
     if (strings_amount != 0):
         print strings_amount
-        ofile.seek(0)
+        res.write(str(strings_amount) + "\n")
     else:
-        print "File is empty"
         return 0
+    ofile.seek(0)
     chars = count_chars_in_lines(ofile)
     count_lines = 0
     been = False
     for i in chars:
         count_lines += 1
         if (i > LINESIZE):
-             print "Too many chars in line {}: {} chars".format(count_lines, i)
+             #print "Too many chars in line {}: {} chars".format(count_lines, i)
              been = True
     if not been:
-        print "OK"
+        res.write("0\n")
+        #print "OK"
+    if been:
+        res.write("1\n")
     ofile.seek(0)
     methods_amount =  count_methods(ofile)
+    max = 0
     if (methods_amount == 0):
-        print "No methods found"
+        res.write("0\n")
+        #print "No methods found"
     else:
+        res.write(str(methods_amount) + "\n")
         print methods_amount
         ofile.seek(0)
         lengths = find_methods_lengths(ofile)
         #print lengths
-        print "List of methods with lengths:\n"
+        #print "List of methods with lengths:\n"
         for key, value in lengths.iteritems():
-            print "{}: {}".format(key, value)
-
+            if (value > max):
+                max = value
+            #print "{}: {}".format(key, value)
+    print max
+    res.write(str(max) + '\n')
     ofile.seek(0)
     max_nesting_loops = count_loop_nesting(ofile)
     print "Nesting loops amount: {}".format(max_nesting_loops)
-    #print count_methods(fstring)
+    res.write(str(max_nesting_loops) + "\n")
+    res.write('\n')
+    ofile.close()
+    res.close()
     #print fstring
+    print "OK\n"
 
 main()
