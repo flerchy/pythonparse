@@ -5,7 +5,7 @@ import time
 import argparse
 import re
 
-LINESIZE = 120
+LINESIZE = 81
 
 INF = 99999
 file = None
@@ -14,7 +14,7 @@ parser = argparse.ArgumentParser(description="Code file stats")
 
 
 def find_methods_lengths(file):
-    print "Countint methods lengths..."
+    print "Counting methods lengths..."
     lengths_of_methods = {}
     result = None
     inside = False
@@ -22,9 +22,7 @@ def find_methods_lengths(file):
     string_count = 0
     for i in file:
         #print i
-        result = re.match(r'def', i)
-        if result is None:
-            result = re.match(r'class', i)
+        result = re.match(r'[ ]*def', i)
         #print result
         if (inside == True):
             string_count += 1
@@ -49,19 +47,56 @@ def find_methods_lengths(file):
         lengths_of_methods[name] = string_count
     return lengths_of_methods
 
+def find_classes_lengths(file):
+    print "Counting classes lengths..."
+    lengths_of_classes = {}
+    result = None
+    inside = False
+    name = None
+    string_count = 0
+    for i in file:
+        #print i
+        result = re.match(r'[ ]*class', i)
+        #print result
+        if (inside == True):
+            string_count += 1
+        if ((result is not None) and (inside == True)):
+            lengths_of_classes[name] = string_count-3
+            string_count = 0
+            inside = False
+        if ((result is not None) and (inside == False)):
+            func_name = re.search('(?<=class )\w+\(.*\)', i)
+            string_count = 0
+            inside = True
+        result2 = re.match(r'[a-z]|[A-Z]', i)
+        if ((result2 is not None) and (result is None) and (inside == True)):
+            lengths_of_classes[name] = string_count-3
+            string_count = 0
+            inside = False
+    if name not in lengths_of_classes.keys():
+        lengths_of_classes[name] = string_count
+    return lengths_of_classes
+
 def count_methods(file):
     print "Counting methods"
     methods_amount = 0
     result = True
     for i in file:
-        result = re.match(r'def ', i)
+        result = re.match(r'[ ]*def ', i)
         if (result is not None):
             methods_amount += 1
-        else:
-            result = re.match(r'class ', i)
-            if(result is not None):
-                methods_amount += 1
     return methods_amount
+
+
+def count_classes(file):
+    print "Counting classes"
+    classes_amount = 0
+    result = True
+    for i in file:
+        result = re.match(r'[ ]*class ', i)
+        if (result is not None):
+            classes_amount += 1
+    return classes_amount
 
 def fopen(filename):
     print "Open file."
@@ -105,20 +140,23 @@ def count_loop_nesting(file):
         x = file.readline()
         if not x: break
         num_str += 1
-        result1 = re.search(r'    for', x)
+        result1 = re.search(r'^[ ]*for', x)
         if (result1 is not None):
             begin.append(num_str)
-        result2 = re.search(r'    while', x)
+        result2 = re.search(r'^[ ]*while', x)
         if (result2 is not None):
             begin.append(num_str)
         #print num_str
     #print begin
     file.seek(0)
     num_str = -1
+    prev = 0
     while True:
         x = file.readline()
         if not x: break
-        num_spaces.append(count_spaces(x))
+        if x == "\n": num_spaces.append(prev)
+        prev = count_spaces(x)
+        num_spaces.append(prev)
     #print num_spaces
     file.seek(0)
     num_str = count_strings(file)
@@ -205,6 +243,21 @@ def main():
     print max
     res.write(str(max) + '\n')
     ofile.seek(0)
+    classes_amount = count_classes(ofile)
+    max = 0
+    if (classes_amount == 0):
+        res.write("0\n")
+    else:
+        res.write(str(classes_amount) + "\n")
+        print classes_amount
+        ofile.seek(0)
+        lengths = find_classes_lengths(ofile)
+        for key, value in lengths.iteritems():
+            if value > max:
+                max = value
+    print max
+    res.write(str(max) + '\n')
+    ofile.seek(0)
     max_nesting_loops = count_loop_nesting(ofile)
     print "Nesting loops amount: {}".format(max_nesting_loops)
     res.write(str(max_nesting_loops) + "\n")
@@ -214,4 +267,5 @@ def main():
     #print fstring
     print "OK\n"
 
-main()
+if __name__ == "__main__":
+    main()
