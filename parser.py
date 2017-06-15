@@ -13,17 +13,17 @@ parser = argparse.ArgumentParser(description="Code file stats")
 
 
 
-def find_methods_lengths(file):
-    print "Counting methods lengths..."
+def findMethodsLengths(file):
+    # print "Counting methods lengths..."
     lengths_of_methods = {}
     result = None
     inside = False
     name = None
     string_count = 0
     for i in file:
-        #print i
+        ##print i
         result = re.match(r'[ ]*def', i)
-        #print result
+        ##print result
         if (inside == True):
             string_count += 1
         if ((result is not None) and (inside == True)):
@@ -47,17 +47,17 @@ def find_methods_lengths(file):
         lengths_of_methods[name] = string_count
     return lengths_of_methods
 
-def find_classes_lengths(file):
-    print "Counting classes lengths..."
+def find_Casses_Lngths(file):
+    #print "Counting classes lengths..."
     lengths_of_classes = {}
     result = None
     inside = False
     name = None
     string_count = 0
     for i in file:
-        #print i
+        ##print i
         result = re.match(r'[ ]*class', i)
-        #print result
+        ##print result
         if (inside == True):
             string_count += 1
         if ((result is not None) and (inside == True)):
@@ -78,7 +78,7 @@ def find_classes_lengths(file):
     return lengths_of_classes
 
 def count_methods(file):
-    print "Counting methods"
+    #print "Counting methods"
     methods_amount = 0
     result = True
     for i in file:
@@ -89,7 +89,7 @@ def count_methods(file):
 
 
 def count_classes(file):
-    print "Counting classes"
+    #print "Counting classes"
     classes_amount = 0
     result = True
     for i in file:
@@ -98,8 +98,8 @@ def count_classes(file):
             classes_amount += 1
     return classes_amount
 
-def fopen(filename):
-    print "Open file."
+def Fopen(filename):
+    #print "Open file."
     if os.path.isfile(filename):
         file = open(filename, 'r')
     else:
@@ -112,7 +112,7 @@ def count_strings(file):
 
 
 def count_chars_in_lines(file):
-    print "Counting chars in lines"
+    #print "Counting chars in lines"
     chars = []
     for i in file:
         chars.append(len(i))
@@ -129,7 +129,7 @@ def count_spaces(string):
 
 
 def count_loop_nesting(file):
-    print "Counting nesting loops if any"
+    #print "Counting nesting loops if any"
     level = 0
     begin = []
     end = []
@@ -146,8 +146,8 @@ def count_loop_nesting(file):
         result2 = re.search(r'^[ ]*while', x)
         if (result2 is not None):
             begin.append(num_str)
-        #print num_str
-    #print begin
+        ##print num_str
+    ##print begin
     file.seek(0)
     num_str = -1
     prev = 0
@@ -157,22 +157,22 @@ def count_loop_nesting(file):
         if x == "\n": num_spaces.append(prev)
         prev = count_spaces(x)
         num_spaces.append(prev)
-    #print num_spaces
+    ##print num_spaces
     file.seek(0)
     num_str = count_strings(file)
     file.seek(0)
     for i in begin:
-        #print i
+        ##print i
         for j in range(i+1, num_str):
             if (num_spaces[j] <= num_spaces[i]):
-                #print j
+                ##print j
                 end.append(j)
                 break
     end.sort()
     if not end:
         for i in begin:
             end.append(num_str)
-    #print end
+    ##print end
     nests = 0
     max_nests = 0
     end.append(INF)
@@ -180,8 +180,8 @@ def count_loop_nesting(file):
     i = 0
     j = 0
     while ((begin[i] != 99999) and (end[j] != 99999)):
-            #print begin[i]
-            #print end[j]
+            ##print begin[i]
+            ##print end[j]
             if begin[i] < end[j]:
                 nests += 1
                 if max_nests < nests:
@@ -200,12 +200,12 @@ def main():
                                     help='Path to results')
     args = parser.parse_args()
     ofile = fopen(args.filename)
-    print args.filename
+    #print args.filename
     res = open(args.destination, 'a+')
-    #print "Counting lines..."
+    ##print "Counting lines..."
     strings_amount = count_strings(ofile)
     if (strings_amount != 0):
-        print strings_amount
+        #print strings_amount
         res.write(str(strings_amount) + "\n")
     else:
         return 0
@@ -216,11 +216,11 @@ def main():
     for i in chars:
         count_lines += 1
         if (i > LINESIZE):
-             #print "Too many chars in line {}: {} chars".format(count_lines, i)
+             ##print "Too many chars in line {}: {} chars".format(count_lines, i)
              been = True
     if not been:
         res.write("0\n")
-        #print "OK"
+        ##print "OK"
     if been:
         res.write("1\n")
     ofile.seek(0)
@@ -228,19 +228,19 @@ def main():
     max = 0
     if (methods_amount == 0):
         res.write("0\n")
-        #print "No methods found"
+        ##print "No methods found"
     else:
         res.write(str(methods_amount) + "\n")
-        print methods_amount
+        #print methods_amount
         ofile.seek(0)
         lengths = find_methods_lengths(ofile)
-        #print lengths
-        #print "List of methods with lengths:\n"
+        ##print lengths
+        ##print "List of methods with lengths:\n"
         for key, value in lengths.iteritems():
             if (value > max):
                 max = value
-            #print "{}: {}".format(key, value)
-    print max
+            ##print "{}: {}".format(key, value)
+    #print max
     res.write(str(max) + '\n')
     ofile.seek(0)
     classes_amount = count_classes(ofile)
@@ -249,23 +249,23 @@ def main():
         res.write("0\n")
     else:
         res.write(str(classes_amount) + "\n")
-        print classes_amount
+        #print classes_amount
         ofile.seek(0)
         lengths = find_classes_lengths(ofile)
         for key, value in lengths.iteritems():
             if value > max:
                 max = value
-    print max
+    #print max
     res.write(str(max) + '\n')
     ofile.seek(0)
     max_nesting_loops = count_loop_nesting(ofile)
-    print "Nesting loops amount: {}".format(max_nesting_loops)
+    #print "Nesting loops amount: {}".format(max_nesting_loops)
     res.write(str(max_nesting_loops) + "\n")
     res.write('\n')
     ofile.close()
     res.close()
-    #print fstring
-    print "OK\n"
+    ##print fstring
+    #print "OK\n"
 
 if __name__ == "__main__":
     main()
