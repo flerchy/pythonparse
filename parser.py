@@ -13,7 +13,7 @@ parser = argparse.ArgumentParser(description="Code file stats")
 
 
 
-def find_methods_lengths(file):
+def findMethodsLengths(file):
     print "Counting methods lengths..."
     lengths_of_methods = {}
     result = None
@@ -47,7 +47,7 @@ def find_methods_lengths(file):
         lengths_of_methods[name] = string_count
     return lengths_of_methods
 
-def find_classes_lengths(file):
+def find_Classes_Lengths(file):
     print "Counting classes lengths..."
     lengths_of_classes = {}
     result = None
